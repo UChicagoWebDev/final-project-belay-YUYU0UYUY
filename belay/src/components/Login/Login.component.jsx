@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+
 import {
   Grid,
   Form,
@@ -10,15 +11,16 @@ import {
 } from 'semantic-ui-react'
 
 import './Login.css'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-const Login = () => {
+const Login = (props) => {
   let user = {
     userName: '',
     password: '',
   }
 
   let errors = []
+  const navigate = useNavigate()
 
   const [userState, setuserState] = useState(user)
 
@@ -68,15 +70,15 @@ const Login = () => {
           return response.json() // Assuming the API returns JSON data
         })
         .then((user) => {
-          console.log(user.login)
+          console.log(user)
           if (user.login === true) {
             window.localStorage.setItem('chengyu_auth_key', user.authKey)
-            window.localStorage.setItem('userName', user.user_name)
-            const state = { path: '/' }
-            const url = '/'
-            window.history.pushState(state, '', url)
-            window.dispatchEvent(new Event('popstate'))
-            console.log(window.history)
+
+            props.setUser({
+              userName: user.userName,
+              apiKey: user.authKey,
+            })
+            navigate('/')
           } else {
             seterrorState((error) =>
               error.concat({

@@ -1,34 +1,52 @@
 import React from 'react'
 import { Grid, Header, Icon, Dropdown } from 'semantic-ui-react'
+import { useNavigate } from 'react-router-dom'
 
 import './UserInfo.css'
 
-const UserInfo = () => {
-  let userName = window.localStorage.getItem('userName')
+const UserInfo = (props) => {
+  let user = props.user
+  let userName = null
+  if (user) {
+    userName = user.userName
+  }
+  const navigate = useNavigate()
 
-  const getDropDownOptions = () => {
+  const getDropDown = () => {
     return [
       {
-        key: 'signout',
+        key: 'signinout',
         text: (
           <span
             onClick={() => {
-              signout()
-              const state = { path: '/login' }
-              const url = '/login'
-              window.history.pushState(state, '', url)
-              window.dispatchEvent(new Event('popstate'))
+              signinout()
             }}>
-            Sign Out
+            {userName && 'Sign Out'}
+            {!userName && 'Sign In'}
+          </span>
+        ),
+      },
+      {
+        key: 'Profile',
+        text: (
+          <span
+            onClick={() => {
+              navigate('/profile')
+            }}>
+            Profile
           </span>
         ),
       },
     ]
   }
 
-  const signout = () => {
-    window.localStorage.removeItem('userName')
-    window.localStorage.removeItem('chengyu_auth_key')
+  const signinout = () => {
+    if (userName) {
+      window.localStorage.removeItem('chengyu_auth_key')
+      props.setUser('null')
+    } else {
+      navigate('/login')
+    }
   }
 
   return (
@@ -44,21 +62,18 @@ const UserInfo = () => {
               trigger={
                 <span>
                   <Icon name="user" />
-
                   {userName && (
                     // userLogin
-                    <Header.Content>
-                      {window.localStorage.getItem('userName')}
-                    </Header.Content>
+                    <Header.Content>{userName}</Header.Content>
                   )}
 
                   {!userName && (
-                    // userNotLogin
+                    // userLogin
                     <Header.Content>Please Log in</Header.Content>
                   )}
                 </span>
               }
-              options={getDropDownOptions()}></Dropdown>
+              options={getDropDown()}></Dropdown>
           </Header>
         </Grid.Row>
       </Grid.Column>

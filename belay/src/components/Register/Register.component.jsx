@@ -10,9 +10,9 @@ import {
 } from 'semantic-ui-react'
 
 import './Register.css'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
-const Register = () => {
+const Register = (props) => {
   let user = {
     userName: '',
     email: '',
@@ -26,6 +26,7 @@ const Register = () => {
 
   const [errorState, seterrorState] = useState(errors)
 
+  const navigate = useNavigate()
   const handleInput = (event) => {
     // get which part changed
     let target = event.target
@@ -91,12 +92,12 @@ const Register = () => {
         .then((user) => {
           console.log(user)
           window.localStorage.setItem('chengyu_auth_key', user.authKey)
-          window.localStorage.setItem('userName', user.userName)
-
-          const state = { path: '/' }
-          const url = '/'
-          window.history.pushState(state, '', url)
-          window.dispatchEvent(new Event('popstate'))
+          console.log(user.userName)
+          props.setUser({
+            userName: user.userName,
+            apiKey: user.authKey,
+          })
+          navigate('/')
         })
         .catch((error) =>
           console.error('There was a problem with your fetch operation:', error)

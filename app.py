@@ -44,6 +44,7 @@ def query_db(query, args=(), one=False):
 @app.route('/')
 @app.route('/register')
 @app.route('/login')
+@app.route('/profile')
 
 
 @app.route('/',methods=['GET','POST'])
@@ -66,10 +67,10 @@ def signup():
     try:
         query = "insert into users (name, password, api_key) values (?, ?, ?)"
         parameters = (userName, password, api_key)
-        success = query_db(query, parameters)
+        success = query_db(query, parameters) 
 
         user_key = {"login": True, "authKey": api_key, "userName": userName ,"message": "New users created successfully"}
-        return jsonify(user_key, 200)
+        return jsonify(user_key), 200
     except:
         return jsonify({"login": False, "message": "Cannot create new users in db"}), 500
 
@@ -82,22 +83,85 @@ def login():
     password = request.json.get('password')
 
     try:
-        print("success")
         query = "select * from users where name = ? and password = ?"
         parameters = (user_name, password)
         user_info = query_db(query, parameters, one=True)
         print(user_info)
         if user_info:
+            print("Login successfully")
             user_json = {
                 "login": True,
                 "user_id": user_info["id"],
-                "user_name": user_info["name"],
+                "userName": user_info["name"],
                 "authKey": user_info["api_key"]
             }
             return jsonify(user_json), 200
         return jsonify({"login": False, "error": "Failed to login"}), 400
     except:
         return jsonify({"login": False, "message": "Cannot get user in db"}), 500
+    
+    
+    # -------------------------------- updateUserName ----------------------------------
+
+@app.route('/api/updateUserName', methods = ['POST'])
+def updateUserName():
+    print("userName fetch")
+    # Check API Key
+    key = request.headers.get('API-Key')
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+
+    # Update
+    if not request.json:
+        return jsonify({"error": "No contents"}), 400
+    newName = request.json.get('userName')
+    api_key = request.json.get('api_key')
+    print(newName)
+    
+    updateQuery = "update users set name = ? where api_key = ?"
+    parameters = (newName, api_key)
+    query_db(updateQuery, parameters, one=True)
+    if res:
+        print("Update username Successfully")
+        user_json = {
+            "update": True,
+        }
+        return jsonify(user_json), 200
+    print("Something wrong")
+    return jsonify({"update": False, "error": "Failed to update, please check the username and password"}), 500    
+
+# -------------------------------- updatePassword ----------------------------------
+
+@app.route('/api/updatePassword', methods = ['POST'])
+def updatePassword():
+    print("enter")
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+
+    # Update
+    if not request.json:
+        return jsonify({"error": "No contents"}), 400
+    newPassword = request.json.get('password')
+    api_key = request.json.get('api_key')
+    
+    updateQuery = "update users set password = ? where api_key = ?"
+    parameters = (newPassword, api_key)
+    query_db(updateQuery, parameters, one=True)
+    if res:
+        print("Password update successfully")
+        user_json = {
+            "update": True,
+        }
+        return jsonify(user_json), 200
+    print("Something wrong")
+    return jsonify({"update": False, "error": "Failed to update, please check the username and password"}), 500    
 
 # -------------------------------- Helper ----------------------------------
 def generateUid():

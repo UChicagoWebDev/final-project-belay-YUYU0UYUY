@@ -1,0 +1,11 @@
+.grid-form {
+  padding: 1rem;
+  height: 100vh;
+  background-color: #eee;
+}
+
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
