@@ -2,11 +2,10 @@ import React, { useEffect, useState } from 'react'
 
 import './Channels.css'
 import { Menu, Icon } from 'semantic-ui-react'
+import { useNavigate } from 'react-router-dom'
 
 const Channels = (props) => {
-  const channelList = props.rooms
-
-  console.log(channelList)
+  const navigate = useNavigate()
 
   const api_key = localStorage.getItem('chengyu_auth_key')
 
@@ -15,7 +14,10 @@ const Channels = (props) => {
     if (props.rooms.length > 0) {
       return props.rooms.map((channel) => {
         return (
-          <Menu.Item key={channel.room_id} name={channel.room_name}></Menu.Item>
+          <Menu.Item
+            key={channel.room_id}
+            name={channel.room_name}
+            onClick={() => navigate(`/channel/${channel.room_id}`)}></Menu.Item>
         )
       })
     }
@@ -78,7 +80,7 @@ const Channels = (props) => {
 
   useEffect(() => {
     getChannels()
-  }, [])
+  }, [props.Channels, props.currentRoom])
 
   return (
     <>

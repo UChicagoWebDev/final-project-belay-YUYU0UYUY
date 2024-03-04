@@ -17,7 +17,9 @@ export const SideBar = (props) => {
         user={props.user}
         setUser={props.setUser}
         rooms={props.rooms}
-        setRooms={props.setRooms}></Channels>
+        setRooms={props.setRooms}
+        currentRoom={props.currentRoom}
+        setCurrentRoom={props.setCurrentRoom}></Channels>
     </Menu>
   )
 }

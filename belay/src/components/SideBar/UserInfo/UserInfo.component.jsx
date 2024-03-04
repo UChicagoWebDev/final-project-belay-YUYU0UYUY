@@ -54,7 +54,7 @@ const UserInfo = (props) => {
     <Grid>
       <Grid.Column>
         <Grid.Row className="userinfo_grid_row">
-          <Header inverted as="h1">
+          <Header inverted as="h1" onClick={() => navigate('/')}>
             <Icon name="slack" />
             <Header.Content>Belay</Header.Content>
           </Header>

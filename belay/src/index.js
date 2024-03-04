@@ -7,6 +7,7 @@ import Register from './components/Register/Register.component'
 import Login from './components/Login/Login.component'
 import Main from './components/MainPage/MainPage'
 import Profile from './components/UserProfile/Profile.component'
+import ChannelRoom from './components/ChannelRoom/ChannelRoom'
 import { useEffect } from 'react'
 
 import "semantic-ui-css/semantic.min.css"
@@ -30,6 +31,8 @@ function App () {
   // Store rooms and setRooms in local in case refresh lose them in props
   const [rooms, setRooms] = React.useState([])
 
+  const [currentRoom, setCurrentRoom] = React.useState({ id: null, name: null })
+
   return (
     < React.StrictMode >
       <Router>
@@ -38,6 +41,12 @@ function App () {
           <Route path="/register" element={<Register user={user} setUser={setUser} />}></Route>
           <Route path="/" element={<Main user={user} setUser={setUser} rooms={rooms} setRooms={setRooms} />}></Route>
           <Route path="/profile" element={<Profile user={user} setUser={setUser} />}></Route>
+          <Route exact path="/channel/:id" element={<ChannelRoom user={user}
+            setUser={setUser}
+            rooms={rooms}
+            setRooms={setRooms}
+            currentRoom={currentRoom}
+            setCurrentRoom={setCurrentRoom} />}></Route>
         </Routes>
       </Router>
     </React.StrictMode >
