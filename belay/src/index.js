@@ -12,6 +12,7 @@ import { useEffect } from 'react'
 import "semantic-ui-css/semantic.min.css"
 
 function App () {
+  // Store users and set in local in case refresh lose them in props
   const [user, setUser] = React.useState(null)
 
   useEffect(() => {
@@ -25,7 +26,9 @@ function App () {
     localStorage.setItem('storedUser', JSON.stringify(user))
   }, [user])
 
-  console.log(localStorage.getItem('storedUser'))
+
+  // Store rooms and setRooms in local in case refresh lose them in props
+  const [rooms, setRooms] = React.useState([])
 
   return (
     < React.StrictMode >
@@ -33,7 +36,7 @@ function App () {
         <Routes>
           <Route path="/login" element={<Login user={user} setUser={setUser} />} />
           <Route path="/register" element={<Register user={user} setUser={setUser} />}></Route>
-          <Route path="/" element={<Main user={user} setUser={setUser} />}></Route>
+          <Route path="/" element={<Main user={user} setUser={setUser} rooms={rooms} setRooms={setRooms} />}></Route>
           <Route path="/profile" element={<Profile user={user} setUser={setUser} />}></Route>
         </Routes>
       </Router>

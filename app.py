@@ -161,8 +161,51 @@ def updatePassword():
         }
         return jsonify(user_json), 200
     print("Something wrong")
-    return jsonify({"update": False, "error": "Failed to update, please check the username and password"}), 500    
+    return jsonify({"update": False, "error": "Failed to update, please check the username and password"}), 500   
 
+# -------------------------------- createRooms ----------------------------------
+
+@app.route('/api/channels/create', methods = ['POST'])
+def createRoom():
+    print("Create Room")
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+
+    # Insert a new Room
+    room = query_db('insert into channels (name) values (?) returning id, name', ["room"], one=True)
+    print(room["id"])
+    query = "update channels set name = ? where id = ?"
+    roomName = "Channel" + str(room["id"])
+    parameters = (roomName, room["id"])
+    query_db(query, parameters, one=True)
+    if query:
+        print("Create Channel succesfully")
+        room_create = {
+            "create": True,
+            "room_id": room["id"],
+            "room_name": roomName
+        }
+        return jsonify(room_create), 200
+    print("Something wrong")
+    return jsonify({"create": False, "error": "Failed to update, please check the username and password"}), 500     
+
+
+@app.route('/api/channels', methods=['GET'])
+def getRooms():
+    channels = query_db('select * from channels')
+    if channels:
+        print("Get all channels")
+        channelList = []
+        for channel in channels:
+            channelList.append({"room_id": channel["id"], "room_name": channel["name"]})
+        return jsonify(channelList), 200
+    else:
+        return jsonify([]), 200
 # -------------------------------- Helper ----------------------------------
 def generateUid():
     return "chengyux" + str(uuid1)
