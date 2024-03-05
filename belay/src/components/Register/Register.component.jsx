@@ -96,6 +96,7 @@ const Register = (props) => {
           props.setUser({
             userName: user.userName,
             apiKey: user.authKey,
+            userId: user.user_id,
           })
           navigate('/')
         })

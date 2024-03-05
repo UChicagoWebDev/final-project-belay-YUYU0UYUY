@@ -1,19 +1,22 @@
 import React from 'react'
 import { Comment, Icon } from 'semantic-ui-react'
+import './MessageContent.css'
 
 const MessageContent = (props) => {
   let userName = null
-  if (props.user) {
-    userName = props.user.userName
+  if (props.user_name) {
+    userName = props.user_name
   }
-
   return (
     <Comment>
-      <Icon name="person" />
       <Comment.Content>
-        <Comment.Author>{userName}</Comment.Author>
-        <Comment.Metadata>111111111</Comment.Metadata>
-        <Comment.Content>11111111111111</Comment.Content>
+        <div className="Poster">
+          <i class="user icon"></i>
+          <Comment.Author>{userName}</Comment.Author>
+        </div>
+        <div className="commentPart">
+          <Comment.Text>{props.m_body}</Comment.Text>
+        </div>
       </Comment.Content>
     </Comment>
   )

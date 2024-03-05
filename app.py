@@ -65,11 +65,11 @@ def signup():
     api_key = generateUid()
     
     try:
-        query = "insert into users (name, password, api_key) values (?, ?, ?)"
+        query = "insert into users (name, password, api_key) values (?, ?, ?) returning id"
         parameters = (userName, password, api_key)
-        success = query_db(query, parameters) 
+        user = query_db(query, parameters) 
 
-        user_key = {"login": True, "authKey": api_key, "userName": userName ,"message": "New users created successfully"}
+        user_key = {"login": True, "authKey": api_key, "userName": userName , "user_id": user["id"],"message": "New users created successfully"}
         return jsonify(user_key), 200
     except:
         return jsonify({"login": False, "message": "Cannot create new users in db"}), 500
@@ -206,6 +206,100 @@ def getRooms():
         return jsonify(channelList), 200
     else:
         return jsonify([]), 200
+    
+    
+# -------------------------------- ChannelRoom ----------------------------------
+    
+@app.route('/api/channel/<int:room_id>/channelInfo', methods = ['GET'])
+def showRoom(room_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+
+    # GetRoomsList
+    room = query_db('select * from channels where id = ?', [room_id], one=True)
+    
+    if room:
+        room_info = {"success": True, "room_id": room["id"], "room_name": room["name"]}
+
+        return jsonify(room_info), 200
+    print("Something wrong")
+    return jsonify({"error": "Failed to get rooms"}), 500    
+
+# POST to change the name of a room
+@app.route('/api/channel/<int:room_id>/changeRoomName', methods=['POST'])
+def change_room_name(room_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+    
+    print("change name")
+    if not request.json:
+        return jsonify({"error": "No contents"}), 400
+    
+    print(request.json)
+    newRoomName = request.json.get('name')
+    query = 'UPDATE channels SET name = ? where id = ?'
+    parameters = (newRoomName, room_id)
+    query_db(query, parameters)
+    return jsonify({"success": True, "message": "Room name changed successfully"}), 201
+
+
+# POST a new message to a room
+@app.route('/api/channel/<int:room_id>/postMessage', methods=['POST'])
+def post_messages(room_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+    
+    if not request.json:
+        return jsonify({"error": "No contents"}), 400
+    
+    print(request.json)
+    content = request.json.get('body')
+    user_id = request.json.get('user_id')
+
+    query = "insert into messages (body, room_id, user_id) values (?, ?, ?) returning id"
+    parameters = (content, room_id, user_id)
+    room = query_db(query, parameters)
+    if room:
+        return jsonify({"message": "Message posted successfully"}), 201
+    return jsonify({"error": "Failed to post messages"}), 500    
+
+
+# Show all messages in the room get
+@app.route('/api/channel/<int:room_id>/messages', methods = ['GET'])
+def getMessages(room_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+    
+    messages = query_db('select users.name, messages.body, messages.id from messages join users on messages.user_id = users.id where messages.room_id  = ? order by messages.id asc', [room_id])
+    message_in_room = []
+    if not messages:
+        return jsonify({'success': False}), 200
+    for message in messages:
+        m_info = {"m_id": message[2], "user_name": message[0], "m_body": message[1]}
+        message_in_room.append(m_info)
+
+    print(message_in_room)
+    return jsonify({'success':True, 'messages': message_in_room}), 200
+
 # -------------------------------- Helper ----------------------------------
 def generateUid():
     return "chengyux" + str(uuid1)
