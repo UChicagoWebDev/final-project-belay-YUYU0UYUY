@@ -9,8 +9,33 @@ import { Segment, Comment } from 'semantic-ui-react'
 const Messages = (props) => {
   let roomId = useParams()['id']
   const api_key = localStorage.getItem('chengyu_auth_key')
+  let userId = null
+  if (props.user) {
+    userId = props.user.userId
+  }
 
   const [messagesInRoom, setMessageInRoom] = useState([])
+
+  const update_message_seen = (lastMessageId) => {
+    const messageInfo = {
+      last_id: lastMessageId,
+      user_id: userId,
+    }
+    fetch(`/api/channel/${userId}/messages/last_seen`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'API-Key': api_key,
+      },
+      body: JSON.stringify(messageInfo),
+    })
+      .then((response) => response.json())
+      .then((success) => {
+        if (success.success) {
+          console.log('Last message update')
+        }
+      })
+  }
 
   const get_messages = () => {
     fetch(`/api/channel/${roomId}/messages`, {
@@ -25,6 +50,13 @@ const Messages = (props) => {
         if (messages.success) {
           console.log(messages.messages)
           setMessageInRoom(messages.messages)
+
+          const lastMessageId = messages.messages.reduce(
+            (maxId, message) => Math.max(maxId, message.m_id),
+            0
+          )
+          console.log('maxMessageId: ', lastMessageId)
+          update_message_seen(lastMessageId)
         }
       })
   }

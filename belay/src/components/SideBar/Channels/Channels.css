@@ -8,3 +8,7 @@
 .ui.menu .item.active {
   background-color: #1164a3 !important;
 }
+
+.unread {
+  color: red;
+}

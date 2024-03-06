@@ -6,6 +6,11 @@ import { useNavigate } from 'react-router-dom'
 
 const Channels = (props) => {
   const navigate = useNavigate()
+  const [unreadState, setUnreadState] = useState({})
+  let userId = null
+  if (props.user) {
+    userId = props.user.userId
+  }
 
   const api_key = localStorage.getItem('chengyu_auth_key')
 
@@ -17,10 +22,51 @@ const Channels = (props) => {
           <Menu.Item
             key={channel.room_id}
             name={channel.room_name}
-            onClick={() => navigate(`/channel/${channel.room_id}`)}></Menu.Item>
+            onClick={() => navigate(`/channel/${channel.room_id}`)}>
+            {channel.room_name}
+            {unreadState[channel.room_id] > 0 && (
+              <text className="unread">
+                {'   '}
+                Unread: {unreadState[channel.room_id]}{' '}
+              </text>
+            )}{' '}
+          </Menu.Item>
         )
       })
     }
+  }
+
+  const getUnreadMessages = () => {
+    fetch(`/api/users/${userId}/messages_count`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'API-Key': api_key,
+      },
+    })
+      .then((response) => {
+        return response.json()
+      })
+      .then((count) => {
+        if (count.success) {
+          const counts = count.unread_message_counts.reduce((acc, curr) => {
+            acc[curr.channel_id] = curr.unread_message_count
+            return acc
+          }, {})
+          setUnreadState(counts)
+        } else {
+          console.log('Do not get unread messages ')
+          setUnreadState([])
+        }
+        console.log(unreadState)
+      })
+      .catch((error) => {
+        console.error(
+          'There has been a problem with your fetch operation:',
+          error
+        )
+        // setIsLoading(false);
+      })
   }
 
   const getChannels = () => {
@@ -78,8 +124,18 @@ const Channels = (props) => {
       )
   }
 
+  const getRoomsNum = () => {
+    return props.rooms.length
+  }
+
   useEffect(() => {
     getChannels()
+    getUnreadMessages()
+    const message_interval = setInterval(() => {
+      getChannels()
+      getUnreadMessages()
+    }, 500)
+    return () => clearInterval(message_interval)
   }, [props.Channels, props.currentRoom])
 
   return (
@@ -89,7 +145,7 @@ const Channels = (props) => {
           <span>
             <Icon name="exchange" /> Channels
           </span>
-          (0),
+          (Num: {getRoomsNum()})
         </Menu.Item>
         {displayChannels()}
         <Menu.Item>

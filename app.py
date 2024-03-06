@@ -64,15 +64,19 @@ def signup():
     password = request.json.get('password')
     api_key = generateUid()
     
-    try:
-        query = "insert into users (name, password, api_key) values (?, ?, ?) returning id"
-        parameters = (userName, password, api_key)
-        user = query_db(query, parameters) 
 
-        user_key = {"login": True, "authKey": api_key, "userName": userName , "user_id": user["id"],"message": "New users created successfully"}
-        return jsonify(user_key), 200
-    except:
-        return jsonify({"login": False, "message": "Cannot create new users in db"}), 500
+    query = "insert into users (name, password, api_key) values (?, ?, ?) returning name, id, api_key"
+    parameters = (userName, password, api_key)
+    user_info = query_db(query, parameters, one=True) 
+    if user_info:
+        user_json = {
+            "login": True,
+            "user_id": user_info["id"],
+            "userName": user_info["name"],
+            "authKey": api_key
+        }
+        return jsonify(user_json), 200
+    return jsonify({"login": False, "message": "Cannot create new users in db"}), 500
 
 
 @app.route('/api/login', methods = ['POST'])
@@ -299,6 +303,81 @@ def getMessages(room_id):
 
     print(message_in_room)
     return jsonify({'success':True, 'messages': message_in_room}), 200
+
+
+
+# -------------------------------- UNREAD MESSAGES ----------------------------------
+
+@app.route('/api/channel/<int:room_id>/messages/last_seen', methods=['POST'])
+def mark_message_as_seen(room_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401  
+    
+    
+    message_id = request.json.get('last_id')
+    user_id = request.json.get('user_id')
+    
+    try:
+        # Check if the user has seen the message
+        seen_message = query_db('SELECT * FROM last_messages_seen WHERE user_id = ? AND room_id = ?',
+                                [user_id, room_id], one=True)
+
+        if seen_message:
+            # Update the existing seen message record
+            query_db('UPDATE last_messages_seen SET last_message_id = ?, time_seen = CURRENT_TIMESTAMP WHERE user_id = ? AND room_id = ?',
+                     [message_id, user_id, room_id])
+        else:
+            # Insert a new seen message record
+            query_db('INSERT INTO last_messages_seen (user_id, room_id, last_message_id) VALUES (?, ?, ?)',
+                     [user_id, room_id, message_id])
+
+        return jsonify({'success': True, 'message': 'Last read message updated'}), 200
+
+    except sqlite3.Error as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/api/users/<int:user_id>/messages_count', methods=['GET'])
+def get_unread_message_counts(user_id):
+    query = """
+    SELECT 
+        c.id as channel_id, 
+        c.name as channel_name, 
+        COALESCE(SUM(CASE WHEN m.id > IFNULL(sm.last_message_id, 0) THEN 1 ELSE 0 END), 0) as unread_message_count
+    FROM channels c
+    LEFT JOIN messages m ON c.id = m.room_id
+    LEFT JOIN (
+        SELECT 
+            last_message_id, 
+            room_id 
+        FROM last_messages_seen
+        WHERE user_id = ?
+    ) sm ON sm.room_id = c.id
+    GROUP BY c.id;
+
+    """
+    try:
+        # print("before query")
+        print("user_id" + str(user_id))
+        if not user_id:
+            return jsonify({"success": False, "message": "not a user"})
+        unread_message_counts = query_db(query, [user_id])
+        # print("unread_message_counts", unread_message_counts)
+        unread_counts = [{
+            "channel_id": row['channel_id'],
+            "channel_name": row['channel_name'],
+            "unread_message_count": row['unread_message_count']
+        } for row in unread_message_counts]
+        print(unread_counts)
+        # print("unread_counts: ", unread_counts)
+        return jsonify({"success": True, "unread_message_counts": unread_counts})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 
 # -------------------------------- Helper ----------------------------------
 def generateUid():

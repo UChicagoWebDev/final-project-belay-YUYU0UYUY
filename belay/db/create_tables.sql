@@ -23,3 +23,15 @@ create table messages (
   FOREIGN KEY(user_id) REFERENCES users(id),
   FOREIGN KEY(room_id) REFERENCES rooms(id)
 );
+
+
+create table last_messages_seen (
+    id INTEGER PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    room_id INTEGER NOT NULL,
+    last_message_id INTEGER NOT NULL,
+    time_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (room_id) REFERENCES channels(id),
+    FOREIGN KEY (last_message_id) REFERENCES messages(id)
+);
