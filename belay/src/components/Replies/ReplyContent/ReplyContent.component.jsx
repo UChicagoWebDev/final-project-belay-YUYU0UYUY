@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { Comment, Icon } from 'semantic-ui-react'
-import './MessageContent.css'
-import { useNavigate } from 'react-router-dom'
+import './ReplyContent.css'
 
 const MessageContent = (props) => {
-  const navigate = useNavigate()
   let userName = null
   let messageId = null
   let userId = null
@@ -88,11 +86,7 @@ const MessageContent = (props) => {
       </Comment.Content>
       <div className="subtext">
         <div className="replies-emojis-container">
-          <div
-            className="message-replies_count"
-            onClick={() => navigate(`/replies/${messageId}`)}>
-            Replies
-          </div>
+          <div className="message-replies_count">Replies</div>
           <div className="message-emojis-left">
             <span>
               {' '}

@@ -8,6 +8,7 @@ import Login from './components/Login/Login.component'
 import Main from './components/MainPage/MainPage'
 import Profile from './components/UserProfile/Profile.component'
 import ChannelRoom from './components/ChannelRoom/ChannelRoom'
+import RepliesRoom from './components/RepliesRoom/RepliesRoom.component'
 import { useEffect } from 'react'
 
 import "semantic-ui-css/semantic.min.css"
@@ -42,6 +43,12 @@ function App () {
           <Route path="/" element={<Main user={user} setUser={setUser} rooms={rooms} setRooms={setRooms} />}></Route>
           <Route path="/profile" element={<Profile user={user} setUser={setUser} />}></Route>
           <Route exact path="/channel/:id" element={<ChannelRoom user={user}
+            setUser={setUser}
+            rooms={rooms}
+            setRooms={setRooms}
+            currentRoom={currentRoom}
+            setCurrentRoom={setCurrentRoom} />}></Route>
+          <Route exact path="/Replies/:id" element={<RepliesRoom user={user}
             setUser={setUser}
             rooms={rooms}
             setRooms={setRooms}
