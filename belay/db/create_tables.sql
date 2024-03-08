@@ -22,6 +22,7 @@ create table messages (
   user_id INTEGER,
   room_id INTEGER,
   body TEXT,
+  replies_to INTEGER DEFAULT NULL,
   FOREIGN KEY(user_id) REFERENCES users(id),
   FOREIGN KEY(room_id) REFERENCES rooms(id)
 );

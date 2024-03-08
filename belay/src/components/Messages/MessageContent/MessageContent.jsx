@@ -67,9 +67,9 @@ const MessageContent = (props) => {
 
   useEffect(() => {
     getEmojiCount('😀')
-    getEmojiCount('😀')
+    getEmojiCount('👎')
     const message_interval = setInterval(() => {
-      getEmojiCount('👎')
+      getEmojiCount('😀')
       getEmojiCount('👎')
     }, 500)
     return () => clearInterval(message_interval)

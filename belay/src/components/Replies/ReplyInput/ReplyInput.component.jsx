@@ -4,6 +4,7 @@ import { Segment, Input, Button } from 'semantic-ui-react'
 import { useParams } from 'react-router-dom'
 
 const MessageInput = (props) => {
+  const repliedId = useParams()['id']
   const user = props.user
   let userId = ''
   if (user) {
@@ -42,7 +43,7 @@ const MessageInput = (props) => {
     return true
   }
 
-  const sendMessage = (event) => {
+  const sendReplies = (event) => {
     seterrorState([])
     if (checkForm) {
       // Send user information to backend
@@ -51,7 +52,7 @@ const MessageInput = (props) => {
         room_id: messageState.room_id,
         body: messageState.body,
       }
-      fetch(`/api/channel/${roomId}/postMessage`, {
+      fetch(`/api/message/${repliedId}/postReplies`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -84,7 +85,7 @@ const MessageInput = (props) => {
   const createActionButtons = () => {
     return (
       <>
-        <Button icon="send" onClick={sendMessage} />
+        <Button icon="send" onClick={sendReplies} />
 
         <Button icon="upload" />
       </>
