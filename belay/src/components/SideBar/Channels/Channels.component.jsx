@@ -5,14 +5,13 @@ import { Menu, Icon } from 'semantic-ui-react'
 import { useNavigate } from 'react-router-dom'
 
 const Channels = (props) => {
+  console.log(props.user)
+
   const navigate = useNavigate()
   const [unreadState, setUnreadState] = useState({})
-  let userId = null
-  if (props.user) {
-    userId = props.user.userId
-  }
 
   const api_key = localStorage.getItem('chengyu_auth_key')
+  let userId = window.sessionStorage.getItem('user_id')
 
   const displayChannels = () => {
     console.log(props.rooms.length)
@@ -37,6 +36,9 @@ const Channels = (props) => {
   }
 
   const getUnreadMessages = () => {
+    if (userId === null) {
+      userId = 0
+    }
     fetch(`/api/users/${userId}/messages_count`, {
       method: 'GET',
       headers: {
@@ -131,6 +133,7 @@ const Channels = (props) => {
   useEffect(() => {
     getChannels()
     getUnreadMessages()
+
     const message_interval = setInterval(() => {
       getChannels()
       getUnreadMessages()

@@ -293,12 +293,12 @@ def getMessages(room_id):
     if not key or not res:
         return jsonify({"message": "Not valid API key."}), 401    
     
-    messages = query_db('select users.name, messages.body, messages.id from messages join users on messages.user_id = users.id where messages.room_id  = ? order by messages.id asc', [room_id])
+    messages = query_db('select users.name, messages.body, messages.id,  users.id from messages join users on messages.user_id = users.id where messages.room_id  = ? order by messages.id asc', [room_id])
     message_in_room = []
     if not messages:
         return jsonify({'success': False}), 200
     for message in messages:
-        m_info = {"m_id": message[2], "user_name": message[0], "m_body": message[1]}
+        m_info = {"m_id": message[2], "user_name": message[0], "m_body": message[1], "user_id": message[3]}
         message_in_room.append(m_info)
 
     print(message_in_room)
@@ -344,6 +344,9 @@ def mark_message_as_seen(room_id):
 
 @app.route('/api/users/<int:user_id>/messages_count', methods=['GET'])
 def get_unread_message_counts(user_id):
+    print(user_id)
+    if user_id == -1:
+        return jsonify({"success": False, "message": "Not login"}), 500
     query = """
     SELECT 
         c.id as channel_id, 
@@ -378,6 +381,71 @@ def get_unread_message_counts(user_id):
         return jsonify({"success": True, "unread_message_counts": unread_counts})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)}), 500
+    
+    
+# -------------------------------- Emoji ----------------------------------
+    
+    # Send a emoji to the message
+@app.route('/api/message/<int:message_id>/postEmoji', methods=['POST'])
+def post_emoji(message_id):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+    
+    if not request.json:
+        return jsonify({"error": "No contents"}), 400
+    
+    print(request.json)
+    emoji = request.json.get('emoji_type')
+    user_id = request.json.get('user_id')
+    message_id = request.json.get('message_id')
+    
+    try:
+        exist_emoji = query_db('SELECT * FROM emoji WHERE emoji.message_id = ? and emoji.content = ? and emoji.user_id = ?',
+                                [message_id, emoji, user_id], one=True)
+        print(exist_emoji)
+        if exist_emoji:
+            # DELETE
+            query_db('delete FROM emoji WHERE emoji.message_id = ? and emoji.content = ? and emoji.user_id = ? ',
+                     [message_id, emoji, user_id])
+            return jsonify({"success": True, "message": "Emoji posted successfully"}), 201
+        else:
+            # Insert a new emoji record
+            print(emoji)
+            query = "insert into emoji (content, message_id, user_id) values (?, ?, ?) returning id"
+            parameters = (emoji, message_id, user_id)
+            emoji = query_db(query, parameters)
+            if emoji:
+                return jsonify({"success": True, "message": "Emoji posted successfully"}), 201
+    
+    except:
+        return jsonify({"error": "Failed to post emoji"}), 500    
+
+
+    # Get the count of a emoji given a message
+@app.route('/api/message/<int:message_id>/getEmoji/<emoji>', methods=['GET'])
+def get_emoji(message_id, emoji):
+    # Check API Key
+    key = request.headers.get('API-Key')
+    print(key)
+    apiQuery = 'select * from users where api_key = ?'
+    res = query_db(apiQuery, (key,), one = True)
+    if not key or not res:
+        return jsonify({"message": "Not valid API key."}), 401    
+
+    query = " SELECT emoji.id FROM emoji WHERE emoji.message_id = ? and emoji.content = ?"
+    parameters = (message_id, emoji)
+    all_emoji = query_db(query, parameters, one=False)
+    print("all_emoji" + str(all_emoji))
+    count = 0
+    if all_emoji:
+        count = len(all_emoji)
+    
+    return jsonify({"success": True, "count": count}), 201   
 
 # -------------------------------- Helper ----------------------------------
 def generateUid():

@@ -73,7 +73,7 @@ const Login = (props) => {
           console.log(user)
           if (user.login === true) {
             window.localStorage.setItem('chengyu_auth_key', user.authKey)
-
+            window.sessionStorage.setItem('user_id', user.user_id)
             props.setUser({
               userName: user.userName,
               apiKey: user.authKey,

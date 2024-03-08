@@ -92,6 +92,7 @@ const Register = (props) => {
         .then((user) => {
           console.log(user)
           window.localStorage.setItem('chengyu_auth_key', user.authKey)
+          window.sessionStorage.setItem('user_id', user.user_id)
           console.log(user.userName)
           props.setUser({
             userName: user.userName,

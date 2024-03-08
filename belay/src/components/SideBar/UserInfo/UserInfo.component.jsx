@@ -43,6 +43,7 @@ const UserInfo = (props) => {
   const signinout = () => {
     if (userName) {
       window.localStorage.removeItem('chengyu_auth_key')
+      window.sessionStorage.removeItem('user_id')
       props.setUser(null)
       props.setRooms([])
     } else {

@@ -1,6 +1,8 @@
-DROP TABLE IF EXISTS channels;
 DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS channels;
 DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS last_messages_seen;
+DROP TABLE IF EXISTS emoji;
 
 
 create table users (
@@ -34,4 +36,14 @@ create table last_messages_seen (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (room_id) REFERENCES channels(id),
     FOREIGN KEY (last_message_id) REFERENCES messages(id)
+);
+
+
+CREATE TABLE emoji (
+    id INTEGER PRIMARY KEY,
+    content TEXT NOT NULL,
+    message_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    FOREIGN KEY (message_id) REFERENCES messages(id),
+    FOREIGN KEY (user_id) REFERENCES users(id)
 );

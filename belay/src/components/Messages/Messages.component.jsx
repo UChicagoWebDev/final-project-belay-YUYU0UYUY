@@ -11,7 +11,7 @@ const Messages = (props) => {
   const api_key = localStorage.getItem('chengyu_auth_key')
   let userId = null
   if (props.user) {
-    userId = props.user.userId
+    userId = window.sessionStorage.getItem('user_id')
   }
 
   const [messagesInRoom, setMessageInRoom] = useState([])
@@ -21,7 +21,7 @@ const Messages = (props) => {
       last_id: lastMessageId,
       user_id: userId,
     }
-    fetch(`/api/channel/${userId}/messages/last_seen`, {
+    fetch(`/api/channel/${roomId}/messages/last_seen`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -57,6 +57,8 @@ const Messages = (props) => {
           )
           console.log('maxMessageId: ', lastMessageId)
           update_message_seen(lastMessageId)
+        } else {
+          setMessageInRoom([])
         }
       })
   }
@@ -64,6 +66,7 @@ const Messages = (props) => {
   useEffect(() => {
     get_messages()
     displayMessages()
+
     const message_interval = setInterval(() => {
       get_messages()
     }, 500)
@@ -77,7 +80,9 @@ const Messages = (props) => {
           <MessageContent
             key={message.m_id}
             user_name={message.user_name}
-            m_body={message.m_body}></MessageContent>
+            message_id={message.m_id}
+            m_body={message.m_body}
+            user_id={message.user_id}></MessageContent>
         )
       })
     }
